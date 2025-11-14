@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Digital Flashcards Featuring Gen Z Slang</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #F8E8FF;
+    margin: 0; padding: 0;
+    color: #222;
+  }
+  html[data-theme='dark'] {
+    background: #1e1e2f;
+    color: #eee;
+  }
+  header {
+    background: #e0d9f7;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  html[data-theme='dark'] header {
+    background: #3a3a55;
+  }
+  button {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #8c60ff;
+    color: white;
+    border-radius: 5px;
+    margin-left: 0.5rem;
+  }
+  button:hover {
+    background: #7339cc;
+  }
+  #flashcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+    gap: 1rem;
+    max-width: 900px;
+    margin: 1rem auto;
+  }
+  .flashcard {
+    background: rgba(255 255 255 / 0.7);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    cursor: pointer;
+    user-select: none;
+    perspective: 1500px;
+  }
+  html[data-theme='dark'] .flashcard {
+    background: rgba(25 25 35 / 0.8);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .flashcard-inner {
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+    border-radius: 12px;
+    position: relative;
+  }
+  .flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  .flashcard-front, .flashcard-back {
+    backface-visibility: hidden;
+    border-radius: 12px;
+    position: relative;
+    min-height: 180px;
+  }
+  .flashcard-front {
+    font-weight: 700;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flashcard-back {
+    font-weight: 400;
+    font-size: 0.9rem;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #fff;
+    color: #222;
+    padding: 1rem;
+    transform: rotateY(180deg);
+    overflow-y: auto;
+  }
+  html[data-theme='dark'] .flashcard-back {
+    background: #222640;
+    color: #eee;
+  }
+  .label {
+    font-weight: 600;
+    color: #8c60ff;
+  }
+  /* Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-backdrop.active {
+    display: flex;
+  }
+  .modal {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    max-width: 350px;
+    width: 90%;
+  }
+  html[data-theme='dark'] .modal {
+    background: #2a2a40;
+    color: #eee;
+  }
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  /* Dark mode toggle */
+  #btn-theme-toggle {
+    background: #555;
+    margin-left: 0;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Digital Flashcards Featuring Gen Z Slang</h1>
+  <div>
+    <button id="btn-user-signin">User Sign-In</button>
+    <button id="btn-owner-signin">Owner Sign-In</button>
+    <button id="btn-theme-toggle" aria-pressed="false">Dark Mode</button>
+  </div>
+</header>
+
+<div id="flashcard-grid" aria-live="polite" aria-label="Flashcards">
+  <!-- Flashcards go here -->
+</div>
+
+<!-- User Sign-In Modal -->
+<div id="modal-user-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-user-title" tabindex="-1">
+  <div class="modal">
+    <h2 id="modal-user-title">User Sign-In</h2>
+    <label for="input-username">Enter your username:</label>
+    <input id="input-username" type="text" autocomplete="off" />
+    <button id="btn-user-submit">Sign In</button>
+    <button id="btn-user-cancel">Cancel</button>
+  </div>
+</div>
+
+<!-- Owner Sign-In Modal -->
+<div id="modal-owner-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-owner-title" tabindex="-1">
+  <div class="modal">
+    <h2 id="modal-owner-title">Owner Sign-In</h2>
+    <label for="input-owner-token">Enter owner secret token:</label>
+    <input id="input-owner-token" type="password" autocomplete="new-password" />
+    <button id="btn-owner-submit">Sign In</button>
+    <button id="btn-owner-cancel">Cancel</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const deck = [
+    {"term":"ABAS","ipa":"/ˈabas/","meaning":"Expression of shock, disbelief, or being caught off-guard","morphology":"Interjection","cultural_note":"Commonly used in PH online chats for sudden reactions","example":"“Abas! Siya pala yung nanalo!”"},
+    {"term":"OAT","ipa":"/oʊt/","meaning":"A humorous or exaggerated form of “what”","morphology":"Phonetic distortion","cultural_note":"Used in TikTok and meme culture for comedic effect","example":"“Oat?! Totoo ba ’yan?”"},
+    {"term":"KERI","ipa":"/ˈkɛri/","meaning":"“Can do,” “carry lang,” or “it’s okay / manageable”","morphology":"Borrowing (from English “carry”) + semantic shift","cultural_note":"A staple in Filipino gay lingo and Gen Z speech","example":"“Keri ko ’yan kahit mahirap.”"},
+    {"term":"EME","ipa":"/ˈɛme/","meaning":"Filler word meaning “whatever,” “just saying,” or light teasing","morphology":"Nonsense/expressive word","cultural_note":"Used jokingly to downplay statements or show non-serious tone","example":"“Late na naman siya, eme.”"},
+    {"term":"EMAS","ipa":"/ˈɛmas/","meaning":"Variation of “eme,” often playful; means “joke lang” or “pastilan vibes”","morphology":"Expressive alteration + suffix-like change","cultural_note":"Popular in casual Filipino digital conversations","example":"“Di ako galit, emas lang.”"},
+    {"term":"JOWABLE","ipa":"/ˈdʒoʊəbəl/","meaning":"Someone who is date-able or boyfriend/girlfriend material","morphology":"“Jowa” + English suffix -able","cultural_note":"Became popular through memes and local vloggers","example":"“Grabe siya, super jowable.”"},
+    {"term":"FORDA","ipa":"/ˈfɔrda/","meaning":"“For the”—used humorously to exaggerate action (“forda lakad,” “forda eat”)","morphology":"Phonetic play + clipping","cultural_note":"Strong Gen Z/TikTok pattern for comedic phrasing","example":"“Forda study tayo today!”"},
+    {"term":"NO CAP","ipa":"/noʊ kæp/","meaning":"“No lie,” “I’m being honest for real”","morphology":"Slang phrase from African American Vernacular English","cultural_note":"Common on TikTok, streaming communities, and rap culture","example":"“No cap, ang ganda ng project mo.”"},
+    {"term":"PERIODT","ipa":"/ˈpɪər.i.ət/","meaning":"Final statement; “end of discussion”","morphology":"Stylized spelling of “period” with added t for emphasis","cultural_note":"LGBTQ+ roots; used to show confidence and emphasis","example":"“I deserve better, periodt.”"},
+    {"term":"ATE","ipa":"/eɪt/","meaning":"Did extremely well; delivered with excellence","morphology":"Semantic shift (from past tense of “eat”)","cultural_note":"Strong association with LGBTQ+ and drag culture","example":"“She ate that dance routine.”"}
+  ];
+
+  const flashcardGrid = document.getElementById('flashcard-grid');
+
+  // User & Owner sign-in elements
+  const btnUserSignin = document.getElementById('btn-user-signin');
+  const btnOwnerSignin = document.getElementById('btn-owner-signin');
+  const modalUser = document.getElementById('modal-user-backdrop');
+  const modalOwner = document.getElementById('modal-owner-backdrop');
+  const btnUserSubmit = document.getElementById('btn-user-submit');
+  const btnUserCancel = document.getElementById('btn-user-cancel');
+  const btnOwnerSubmit = document.getElementById('btn-owner-submit');
+  const btnOwnerCancel = document.getElementById('btn-owner-cancel');
+  const inputUsername = document.getElementById('input-username');
+  const inputOwnerToken = document.getElementById('input-owner-token');
+  const btnThemeToggle = document.getElementById('btn-theme-toggle');
+
+  // Owner token hash for demo - hashed version of "ownersecret"
+  const demoOwnerTokenHash = "c15a57ecf3a07a8f79279268e8589927ff44d7dd04120f44a8d9dbfd65909fcb";
+
+  // Utils: SHA-256 hash function
+  async function hashToken(token) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(token);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Render flashcards function (flipping on click)
+  function renderFlashcards() {
+    flashcardGrid.innerHTML = '';
+    deck.forEach((card, index) => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'flashcard';
+      cardEl.tabIndex = 0;
+      cardEl.setAttribute('role', 'listitem');
+      cardEl.setAttribute('aria-label', `Flashcard: ${card.term}`);
+      cardEl.innerHTML = `
+        <div class="flashcard-inner">
+          <div class="flashcard-front">${card.term}</div>
+          <div class="flashcard-back">
+            <div><span class="label">IPA:</span> ${card.ipa}</div>
+            <div><span class="label">Meaning:</span> ${card.meaning}</div>
+            <div><span class="label">Morphology:</span> ${card.morphology}</div>
+            <div><span class="label">Cultural Note:</span> ${card.cultural_note}</div>
+            <div><span class="label">Example:</span> ${card.example}</div>
+          </div>
+        </div>
+      `;
+      // Flip card on click or keyboard (Enter/Space)
+      cardEl.addEventListener('click', () => cardEl.classList.toggle('flipped'));
+      cardEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          cardEl.classList.toggle('flipped');
+        }
+      });
+      flashcardGrid.appendChild(cardEl);
+    });
+  }
+
+  // Show/hide modals
+  function showModal(modal) {
+    modal.classList.add('active');
+  }
+  function hideModal(modal) {
+    modal.classList.remove('active');
+  }
+
+  // State
+  let currentUser = null; // username string
+  let isOwner = false;
+
+  // Update UI after sign-in
+  function updateUIAfterSignin() {
+    if (isOwner) {
+      alert(`Signed in as owner: ${currentUser}`);
+      btnUserSignin.style.display = 'none';
+      btnOwnerSignin.style.display = 'none';
+      // TODO: Enable edit mode controls here
+    } else if (currentUser) {
+      alert(`Signed in as user: ${currentUser}`);
+      btnUserSignin.style.display = 'none';
+      // Owner button stays for owner to sign in
+    }
+  }
+
+  // User Sign-In button click
+  btnUserSignin.addEventListener('click', () => {
+    inputUsername.value = '';
+    showModal(modalUser);
+    inputUsername.focus();
+  });
+
+  // Owner Sign-In button click
+  btnOwnerSignin.addEventListener('click', () => {
+    inputOwnerToken.value = '';
+    showModal(modalOwner);
+    inputOwnerToken.focus();
+  });
+
+  // User Sign-In modal buttons
+  btnUserCancel.addEventListener('click', () => hideModal(modalUser));
+  btnUserSubmit.addEventListener('click', () => {
+    const username = inputUsername.value.trim();
+    if (!username) {
+      alert('Please enter your username');
+      inputUsername.focus();
+      return;
+    }
+    currentUser = username;
+    isOwner = false;
+    hideModal(modalUser);
+    updateUIAfterSignin();
+  });
+
+  // Owner Sign-In modal buttons
+  btnOwnerCancel.addEventListener('click', () => hideModal(modalOwner));
+  btnOwnerSubmit.addEventListener('click', async () => {
+    const token = inputOwnerToken.value.trim();
+    if (!token) {
+      alert('Please enter the owner secret token');
+      inputOwnerToken.focus();
+      return;
+    }
+    const hash = await hashToken(token);
+    if (hash === demoOwnerTokenHash) {
+      currentUser = 'Owner';
+      isOwner = true;
+      hideModal(modalOwner);
+      updateUIAfterSignin();
+    } else {
+      alert('Invalid owner token');
+      inputOwnerToken.focus();
+    }
+  });
+
+  // Dark mode toggle
+  btnThemeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      btnThemeToggle.setAttribute('aria-pressed', 'false');
+      btnThemeToggle.textContent = 'Dark Mode';
+      localStorage.setItem('flashcard_theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      btnThemeToggle.setAttribute('aria-pressed', 'true');
+      btnThemeToggle.textContent = 'Light Mode';
+      localStorage.setItem('flashcard_theme', 'dark');
+    }
+  });
+
+  // Restore theme from localStorage on load
+  window.addEventListener('load', () => {
+    const savedTheme = localStorage.getItem('flashcard_theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      btnThemeToggle.setAttribute('aria-pressed', 'true');
+      btnThemeToggle.textContent = 'Light Mode';
+    }
+    renderFlashcards();
+  });
+
+})();
+</script>
+
+</body>
+</html>
